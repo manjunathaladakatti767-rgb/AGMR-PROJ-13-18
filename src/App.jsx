@@ -19,6 +19,7 @@ function App() {
           <Route index element={<AuthPage />} />
           <Route element={<DashboardLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="admin" element={<Admin />} />
             <Route path="history" element={<History />} />
             <Route path="risk-analysis" element={<RiskAnalysis />} />
             <Route path="recommendations" element={<Recommendations />} />

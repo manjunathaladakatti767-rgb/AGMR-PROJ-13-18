@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, LayoutDashboard, History as HistoryIcon, Activity, ThumbsUp, Settings, LogOut } from 'lucide-react';
+import { Shield, LayoutDashboard, History as HistoryIcon, Activity, ThumbsUp, Settings, LogOut, Lock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Sidebar = ({ isOpen, closeSidebar }) => {
@@ -25,6 +25,12 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
           <LayoutDashboard size={20} />
           <span>Dashboard</span>
         </div>
+
+        <div className={isActive('/admin')} onClick={() => handleNav('/admin')}>
+          <Lock size={20} color="#818cf8" />
+          <span style={{ color: '#818cf8', fontWeight: 'bold' }}>Admin Console</span>
+        </div>
+
         <div className={isActive('/history')} onClick={() => handleNav('/history')}>
           <HistoryIcon size={20} />
           <span>History</span>
