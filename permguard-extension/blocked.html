@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Access Denied - PermGuard</title>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: white;
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            padding: 3rem;
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 20px;
+        }
+        .icon {
+            font-size: 80px;
+            margin-bottom: 1.5rem;
+        }
+        h1 {
+            color: #ef4444;
+            font-size: 2.5rem;
+            margin: 0 0 1rem 0;
+        }
+        p {
+            color: #94a3b8;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        .url-box {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            color: #e2e8f0;
+            margin-bottom: 2rem;
+            word-break: break-all;
+        }
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: #ef4444;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🛑</div>
+        <h1>DANGER DETECTED</h1>
+        <p>AccessShield has blocked access to this website because it was identified as <strong>highly dangerous</strong> and likely contains malware or phishing threats.</p>
+        
+        <div class="url-box" id="blocked-url">...</div>
+
+        <a href="https://www.google.com" class="btn">Go Back to Safety</a>
+        <p style="margin-top: 2rem; font-size: 0.8rem; color: #64748b;">Powered by AccessShield URL Safety Engine</p>
+    </div>
+
+    <script src="blocked.js"></script>
+</body>
+</html>

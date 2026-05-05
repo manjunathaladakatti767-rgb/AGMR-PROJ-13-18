@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AccessShield Ecosystem - Technical Documentation</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #0f172a;
+            --accent: #60a5fa;
+            --text: #334155;
+            --bg: #f8fafc;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 40px;
+            background: var(--bg);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+        h1 { color: var(--secondary); margin: 0; font-size: 2.5rem; }
+        h2 { color: var(--primary); border-left: 5px solid var(--primary); padding-left: 15px; margin-top: 40px; }
+        h3 { color: var(--secondary); margin-top: 25px; }
+        .component-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            margin-bottom: 20px;
+        }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .step-number {
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th { background: var(--secondary); color: white; }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            background: #e2e8f0;
+        }
+        @media print {
+            body { background: white; padding: 20px; }
+            .component-card { box-shadow: none; border: 1px solid #e2e8f0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>PermGuard Ecosystem</h1>
+        <p>Advanced Browser Security & URL Risk Analysis System</p>
+        <p><strong>Technical Documentation</strong></p>
+    </div>
+
+    <h2>1. Executive Summary</h2>
+    <p>PermGuard is a multi-layered security ecosystem designed to provide real-time protection against web-based threats. By combining a browser extension with a sophisticated heuristic scanning engine and a centralized dashboard, the system ensures that every URL visited is analyzed for risks before being logged for administrative review.</p>
+
+    <h2>2. System Architecture</h2>
+    <div class="component-card">
+        <h3>1. Dashboard (React)</h3>
+        <p>The user-facing portal running on <strong>Port 5174</strong>. It provides a premium interface for viewing risk analysis reports, monitoring live permissions, and managing security history.</p>
+    </div>
+    <div class="component-card">
+        <h3>2. Backend API (Node.js/Express)</h3>
+        <p>The central controller running on <strong>Port 5000</strong>. It manages user authentication (including Google OAuth), database persistence in MongoDB Atlas, and history retrieval.</p>
+    </div>
+    <div class="component-card">
+        <h3>3. Safety Engine (Risk Scorer)</h3>
+        <p>A specialized service on <strong>Port 5001</strong> that evaluates URL integrity. It uses 16+ deterministic rules to calculate risk without external dependency latencies.</p>
+    </div>
+    <div class="component-card">
+        <h3>4. Chrome Extension</h3>
+        <p>A Manifest V3 browser extension that captures address bar activity and synchronizes it with the AccessShield cloud backend.</p>
+    </div>
+
+    <h2>3. Security Logic (The 16-Rule Engine)</h2>
+    <p>The system calculates a <strong>Risk Score (0-100)</strong> by evaluating the following technical red flags:</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Rule Category</th>
+                <th>Description</th>
+                <th>Risk Weight</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Connection</strong></td>
+                <td>No HTTPS (Unencrypted)</td>
+                <td>+30 Points</td>
+            </tr>
+            <tr>
+                <td><strong>Spoofing</strong></td>
+                <td>Homograph / Unicode Attack</td>
+                <td>+50 Points</td>
+            </tr>
+            <tr>
+                <td><strong>Spoofing</strong></td>
+                <td>Punycode Masking (xn--)</td>
+                <td>+45 Points</td>
+            </tr>
+            <tr>
+                <td><strong>Phishing</strong></td>
+                <td>Suspicious Keywords (Bank, Login, Verify)</td>
+                <td>+25 Points</td>
+            </tr>
+            <tr>
+                <td><strong>Path Analysis</strong></td>
+                <td>Dangerous Filenames (Malware, Virus)</td>
+                <td>+40 Points</td>
+            </tr>
+            <tr>
+                <td><strong>Technical</strong></td>
+                <td>Raw IP usage instead of Domain</td>
+                <td>+25 Points</td>
+            </tr>
+            <tr>
+                <td><strong>Technical</strong></td>
+                <td>Excessive Subdomain Nesting</td>
+                <td>+25 Points</td>
+            </tr>
+            <tr>
+                <td><strong>Obfuscation</strong></td>
+                <td>Double Extensions (pdf.exe)</td>
+                <td>+40 Points</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="component-card" style="background: var(--bg);">
+        <h3>Verdict Logic</h3>
+        <ul>
+            <li><strong>0 - 39: SAFE</strong> - Standard behavior.</li>
+            <li><strong>40 - 69: SUSPICIOUS</strong> - Multiple technical red flags.</li>
+            <li><strong>70 - 100: DANGEROUS</strong> - Confirmed malicious patterns.</li>
+        </ul>
+    </div>
+
+    <h2>4. Operation Workflow</h2>
+    <div class="step">
+        <div class="step-number">1</div>
+        <div><strong>Capture:</strong> The browser extension detects a URL change in the active tab.</div>
+    </div>
+    <div class="step">
+        <div class="step-number">2</div>
+        <div><strong>Analysis:</strong> The extension sends the URL to the Safety Engine for a multi-layered scan.</div>
+    </div>
+    <div class="step">
+        <div class="step-number">3</div>
+        <div><strong>Persistence:</strong> The scan result is paired with the user's ID and stored in the MongoDB History collection.</div>
+    </div>
+    <div class="step">
+        <div class="step-number">4</div>
+        <div><strong>Visualization:</strong> The result appears in the Dashboard History page with a color-coded status badge.</div>
+    </div>
+
+    <div style="margin-top: 50px; text-align: center; color: #94a3b8; font-size: 0.8rem;">
+        &copy; 2026 PermGuard Security Systems. Confidential Document.
+    </div>
+</body>
+</html>

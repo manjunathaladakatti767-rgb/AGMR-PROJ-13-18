@@ -1,0 +1,17 @@
+node_modules
+.env
+dist
+.DS_Store
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+.vscode
+.gemini
+.idea
+build
+.next
+out
+.cache
+coverage
