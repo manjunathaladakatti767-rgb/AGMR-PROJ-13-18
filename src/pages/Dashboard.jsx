@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import KpiWidget from '../components/KpiWidget';
 import CircleChart from '../components/CircleChart';
 import { Activity, ShieldCheck, AlertOctagon, Globe } from 'lucide-react';
+import { API_BASE_URL } from '../api/config';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -27,7 +28,7 @@ const Dashboard = () => {
         const isAdminUser = userInfo.role === 'admin' || userInfo.role === 'superuser' || userInfo.role === 'superadmin';
         
         if (isAdminUser) {
-          const statsRes = await fetch('http://localhost:5000/api/admin/stats', {
+          const statsRes = await fetch(`${API_BASE_URL}/api/admin/stats`, {
             headers: { 'Authorization': `Bearer ${userInfo.token}` }
           });
           const sData = await statsRes.json();
@@ -40,7 +41,7 @@ const Dashboard = () => {
             });
           }
 
-          const historyRes = await fetch('http://localhost:5000/api/admin/history', {
+          const historyRes = await fetch(`${API_BASE_URL}/api/admin/history`, {
             headers: { 'Authorization': `Bearer ${userInfo.token}` }
           });
           const hData = await historyRes.json();
@@ -48,7 +49,7 @@ const Dashboard = () => {
             setRecentScans(hData.slice(0, 10));
           }
         } else {
-          const response = await fetch('http://localhost:5000/api/history', {
+          const response = await fetch(`${API_BASE_URL}/api/history`, {
             headers: { 'Authorization': `Bearer ${userInfo.token}` }
           });
           const data = await response.json();

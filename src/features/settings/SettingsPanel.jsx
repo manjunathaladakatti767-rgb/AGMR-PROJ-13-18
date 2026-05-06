@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Save, Lock, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useLockdown } from '../lockdown/LockdownContext';
+import { API_BASE_URL } from '../../api/config';
 
 const SettingsPanel = () => {
   const { lockdownState } = useLockdown();
@@ -18,7 +19,7 @@ const SettingsPanel = () => {
     const fetchSettings = async () => {
       try {
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-        const res = await fetch('http://localhost:5000/api/settings', {
+        const res = await fetch(`${API_BASE_URL}/api/settings`, {
           headers: { 'Authorization': `Bearer ${userInfo.token}` }
         });
         if (res.ok) {
@@ -37,7 +38,7 @@ const SettingsPanel = () => {
   const handleSave = async () => {
     try {
       const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-      const res = await fetch('http://localhost:5000/api/settings', {
+      const res = await fetch(`${API_BASE_URL}/api/settings`, {
         method: 'PATCH',
         headers: { 
           'Authorization': `Bearer ${userInfo.token}`,
