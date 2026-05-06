@@ -4,6 +4,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const historyRoutes = require('./routes/historyRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const lockdownRoutes = require('./routes/lockdownRoutes');
+const settingsRoutes = require('./routes/settingsRoutes');
+const contentRoutes = require('./routes/contentRoutes');
 
 const app = express();
 
@@ -14,6 +18,10 @@ app.use(express.json()); // Parse JSON bodies
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/history', historyRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/lockdown', lockdownRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/content', contentRoutes);
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)

@@ -25,7 +25,17 @@ const LoginForm = ({ toggleForm }) => {
 
       if (response.ok) {
         localStorage.setItem('userInfo', JSON.stringify(data));
-        navigate('/dashboard');
+        
+        // --- SMART ROLE-BASED ROUTING ---
+        if (data.role === 'superadmin') {
+          navigate('/superadmin');
+        } else if (data.role === 'superuser') {
+          navigate('/superuser');
+        } else if (data.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         setError(data.message || 'Login failed');
       }
@@ -44,8 +54,8 @@ const LoginForm = ({ toggleForm }) => {
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         {error && <div style={{ color: '#ef4444', fontSize: '0.875rem', background: 'rgba(239, 68, 68, 0.1)', padding: '0.5rem', borderRadius: '4px' }}>{error}</div>}
         <div className="input-group">
-          <label htmlFor="email">Email Address</label>
-          <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" required />
+          <label htmlFor="email">Email Address / Username</label>
+          <input type="text" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" required />
         </div>
         
         <div className="input-group">

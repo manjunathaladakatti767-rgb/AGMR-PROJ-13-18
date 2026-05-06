@@ -6,6 +6,7 @@ const UrlReport = require('../models/UrlReport');
 const googleSafeBrowsing = require('../services/googleSafeBrowsing');
 const virusTotal = require('../services/virusTotal');
 const calculateRiskScore = require('../services/customScorer');
+const GlobalPolicy = require('../models/GlobalPolicy');
 
 const checkUrl = async (req, res) => {
   const { url } = req.body;
@@ -16,6 +17,42 @@ const checkUrl = async (req, res) => {
   }
 
   try {
+    // Step 2: Global Policy Check (Manual Overrides)
+    const policy = await GlobalPolicy.findOne({ name: 'default_policy' });
+    if (policy) {
+      // Normalize the URL for checking
+      const normalizedUrl = url.toLowerCase().replace(/\/$/, '');
+
+      // Check Whitelist first
+      const isWhitelisted = policy.whitelist.some(domain => 
+        normalizedUrl.includes(domain.toLowerCase().trim().replace(/\/$/, ''))
+      );
+      if (isWhitelisted) {
+        return res.json({
+          url,
+          status: 'SAFE',
+          riskScore: 0,
+          reasons: ['Manually whitelisted by Administrator'],
+          checkedBy: ['GlobalPolicy'],
+          recommendation: 'This site is verified by your administrator.'
+        });
+      }
+
+      // Check Blacklist
+      const isBlacklisted = policy.blacklist.some(domain => 
+        normalizedUrl.includes(domain.toLowerCase().trim().replace(/\/$/, ''))
+      );
+      if (isBlacklisted) {
+        return res.json({
+          url,
+          status: 'DANGEROUS',
+          riskScore: 100,
+          reasons: ['Manually blacklisted by Administrator'],
+          checkedBy: ['GlobalPolicy'],
+          recommendation: '🚨 CRITICAL: Your administrator has blocked this site globally.'
+        });
+      }
+    }
     // Caching temporarily disabled for live rule testing
     /*
     const existingReport = await UrlReport.findOne({ url });
@@ -39,13 +76,21 @@ const checkUrl = async (req, res) => {
     let reasons = [];
     let checkedBy = [];
 
+    // Determine threshold
+    const threshold = req.body.customThreshold || (policy ? policy.sensitivityThreshold : 70);
+
     // Step 3: Google Safe Browsing check
     const googleResult = await googleSafeBrowsing(url);
     checkedBy.push("GoogleSafeBrowsing");
     
     if (googleResult.flagged) {
       riskScore = 100;
-      status = "DANGEROUS";
+      // ONLY mark as dangerous if riskScore >= threshold
+      if (riskScore >= threshold) {
+        status = "DANGEROUS";
+      } else {
+        status = "SUSPICIOUS"; // Downgrade to suspicious if user has a very high threshold
+      }
       reasons = [googleResult.reason];
     } else {
       // Step 4: VirusTotal check (only if Google didn't flag)
@@ -59,9 +104,9 @@ const checkUrl = async (req, res) => {
       checkedBy.push("CustomScorer");
 
       // Determine final status
-      if (riskScore >= 70) {
+      if (riskScore >= threshold) {
         status = "DANGEROUS";
-      } else if (riskScore >= 40) {
+      } else if (riskScore >= threshold / 1.75) {
         status = "SUSPICIOUS";
       } else {
         status = "SAFE";

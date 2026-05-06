@@ -28,15 +28,33 @@ async function checkAndSaveUrl(url, tabId) {
       return;
     }
 
-    console.log('4. Calling Safety Engine (5001)...');
+    console.log('4. Fetching Personal Risk Threshold (5000)...');
+    let personalThreshold = 70;
+    try {
+      const settingsRes = await fetch('http://localhost:5000/api/settings', {
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+      });
+      if (settingsRes.ok) {
+        const settingsData = await settingsRes.json();
+        personalThreshold = settingsData.data.riskThreshold;
+        console.log('✅ Personal Threshold found:', personalThreshold);
+      }
+    } catch (e) {
+      console.warn('Could not fetch personal settings, using defaults.');
+    }
+
+    console.log('5. Calling Safety Engine (5001)...');
     const scanResponse = await fetch('http://localhost:5001/check-url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
+      body: JSON.stringify({ 
+        url,
+        customThreshold: personalThreshold
+      })
     });
     
     const scanData = await scanResponse.json();
-    console.log('5. Scan Result:', scanData);
+    console.log('6. Scan Result:', scanData);
 
     if (!scanResponse.ok) {
       console.error('❌ Safety Engine Error:', scanData.message);

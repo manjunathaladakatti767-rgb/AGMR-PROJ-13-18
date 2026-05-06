@@ -287,6 +287,7 @@ p {
   flex-grow: 1;
   padding: 1.5rem 0;
   gap: 0.5rem;
+  overflow-y: auto;
 }
 
 .nav-item {

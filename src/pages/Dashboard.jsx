@@ -24,26 +24,50 @@ const Dashboard = () => {
         const userInfo = JSON.parse(userInfoStr);
         setUserName(userInfo.name);
 
-        const response = await fetch('http://localhost:5000/api/history', {
-          headers: { 'Authorization': `Bearer ${userInfo.token}` }
-        });
-        const data = await response.json();
+        const isAdminUser = userInfo.role === 'admin' || userInfo.role === 'superuser' || userInfo.role === 'superadmin';
         
-        if (response.ok) {
-          const total = data.length;
-          const dangerous = data.filter(item => item.status === 'DANGEROUS').length;
-          const safe = data.filter(item => item.status === 'SAFE').length;
-          const safePct = total > 0 ? Math.round((safe / total) * 100) : 100;
-
-          setStats({
-            totalScans: total,
-            dangerousFound: dangerous,
-            safePercentage: safePct,
-            activeProtection: 'Online'
+        if (isAdminUser) {
+          const statsRes = await fetch('http://localhost:5000/api/admin/stats', {
+            headers: { 'Authorization': `Bearer ${userInfo.token}` }
           });
+          const sData = await statsRes.json();
+          if (statsRes.ok) {
+            setStats({
+              totalScans: sData.totalScans,
+              dangerousFound: sData.dangerousScans,
+              safePercentage: sData.totalScans > 0 ? Math.round((sData.safeScans / sData.totalScans) * 100) : 100,
+              activeProtection: 'Online'
+            });
+          }
 
-          // Get last 10 scans for the terminal
-          setRecentScans(data.slice(0, 10));
+          const historyRes = await fetch('http://localhost:5000/api/admin/history', {
+            headers: { 'Authorization': `Bearer ${userInfo.token}` }
+          });
+          const hData = await historyRes.json();
+          if (historyRes.ok) {
+            setRecentScans(hData.slice(0, 10));
+          }
+        } else {
+          const response = await fetch('http://localhost:5000/api/history', {
+            headers: { 'Authorization': `Bearer ${userInfo.token}` }
+          });
+          const data = await response.json();
+          
+          if (response.ok) {
+            const total = data.length;
+            const dangerous = data.filter(item => item.status === 'DANGEROUS').length;
+            const safe = data.filter(item => item.status === 'SAFE').length;
+            const safePct = total > 0 ? Math.round((safe / total) * 100) : 100;
+
+            setStats({
+              totalScans: total,
+              dangerousFound: dangerous,
+              safePercentage: safePct,
+              activeProtection: 'Online'
+            });
+
+            setRecentScans(data.slice(0, 10));
+          }
         }
       } catch (error) {
         console.error('Dashboard Data Fetch Error:', error);

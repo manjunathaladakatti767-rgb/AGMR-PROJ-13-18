@@ -35,6 +35,7 @@ router.post('/register', async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
         token: generateToken(user._id),
         message: 'Password added to your Google account'
       });
@@ -51,6 +52,7 @@ router.post('/register', async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      role: user.role,
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -76,6 +78,7 @@ router.post('/login', async (req, res) => {
           _id: user._id,
           name: user.name,
           email: user.email,
+          role: user.role,
           token: generateToken(user._id),
         });
       }
@@ -121,6 +124,7 @@ router.post('/google', async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      role: user.role,
       token: generateToken(user._id),
     });
   } catch (error) {

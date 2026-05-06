@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AccessShield SuperPanel</title>
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0d1117;
+            --sidebar-bg: #010409;
+            --card-bg: #161b22;
+            --border-color: #30363d;
+            --cyan: #22d3ee;
+            --violet: #a78bfa;
+            --amber: #fbbf24;
+            --red: #f85149;
+            --green: #3fb950;
+            --text-main: #c9d1d9;
+            --text-dim: #8b949e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .logo {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--cyan);
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            flex-grow: 1;
+            padding: 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-dim);
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+
+        .nav-item i { font-size: 1.2rem; }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-main);
+        }
+
+        .nav-item.active {
+            color: var(--cyan);
+            border-left: 3px solid var(--cyan);
+            background: rgba(34, 211, 238, 0.05);
+        }
+
+        .nav-badge {
+            position: absolute;
+            right: 10px;
+            background: var(--red);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg-dark);
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            margin-bottom: 24px;
+            font-size: 1.75rem;
+            color: var(--text-main);
+        }
+
+        /* Components */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .metric-summary {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .metric-chip {
+            background: rgba(255,255,255,0.05);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .metric-chip b { color: var(--cyan); }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th {
+            text-align: left;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        .user-info { display: flex; align-items: center; gap: 10px; }
+
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-active { background: rgba(63, 185, 80, 0.1); color: var(--green); }
+        .status-idle { background: rgba(251, 191, 36, 0.1); color: var(--amber); }
+        .status-risky { background: rgba(248, 81, 73, 0.1); color: var(--red); }
+
+        .risk-pill {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .risky-row { border-left: 4px solid var(--red) !important; }
+
+        /* Buttons */
+        .btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-main);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+
+        .btn:hover { background: rgba(255,255,255,0.05); }
+        .btn-green { border-color: var(--green); color: var(--green); }
+        .btn-amber { border-color: var(--amber); color: var(--amber); }
+        .btn-red { border-color: var(--red); color: var(--red); }
+        .btn-outline-red { border-color: var(--red); color: var(--red); }
+        .btn-outline-amber { border-color: var(--amber); color: var(--amber); }
+
+        /* Inputs */
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        /* Analytics */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .chart-container { height: 300px; position: relative; }
+
+        /* Alerts */
+        .alert-card {
+            border-left: 4px solid var(--cyan);
+            margin-bottom: 12px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        .alert-critical { border-left-color: var(--red); }
+        .alert-warning { border-left-color: var(--amber); }
+
+        .pulsing-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--red);
+            border-radius: 50%;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(248, 81, 73, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(248, 81, 73, 0); }
+        }
+
+        /* Notifications */
+        #notification-feed {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 15px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .notification-item.unread { border-left: 3px solid var(--cyan); box-shadow: inset 5px 0 10px rgba(34, 211, 238, 0.1); }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 10px 0;
+            color: var(--text-dim);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .tab.active {
+            color: var(--cyan);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--cyan);
+        }
+
+        .tab-badge {
+            background: var(--cyan);
+            color: var(--bg-dark);
+            font-size: 0.7rem;
+            padding: 1px 5px;
+            border-radius: 10px;
+            margin-left: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="ti ti-shield-lock"></i>
+                <span>SuperPanel</span>
+            </div>
+            <nav class="nav-links">
+                <div class="nav-item active" onclick="showSection('users', this)">
+                    <i class="ti ti-users"></i>
+                    <span>Users</span>
+                </div>
+                <div class="nav-item" onclick="showSection('threats', this)">
+                    <i class="ti ti-biohazard"></i>
+                    <span>Threats</span>
+                </div>
+                <div class="nav-item" onclick="showSection('analytics', this)">
+                    <i class="ti ti-chart-bar"></i>
+                    <span>Analytics</span>
+                </div>
+                <div class="nav-item" onclick="showSection('alerts', this)">
+                    <i class="ti ti-brain"></i>
+                    <span>AI Alerts</span>
+                </div>
+                <div class="nav-item" onclick="showSection('notifications', this)">
+                    <i class="ti ti-bell"></i>
+                    <span>Notifications</span>
+                    <span id="unread-count" class="nav-badge">0</span>
+                </div>
+                <div class="nav-item" onclick="showSection('approvals', this)">
+                    <i class="ti ti-checklist"></i>
+                    <span>Approvals</span>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="avatar-circle">SU</div>
+                <div>
+                    <div style="font-size: 0.9rem; font-weight: 600;">Super User</div>
+                    <div style="font-size: 0.7rem; color: var(--text-dim);">God Mode</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Section 1: User Monitoring -->
+            <div id="users-section" class="section active">
+                <h2>User Monitoring</h2>
+                <div class="card">
+                    <div class="search-bar">
+                        <input type="text" id="user-search" placeholder="Search name or email..." onkeyup="filterUsers()">
+                        <select id="user-filter" onchange="filterUsers()">
+                            <option value="All">All Statuses</option>
+                            <option value="Risky">Risky Only</option>
+                            <option value="Active">Active Only</option>
+                        </select>
+                    </div>
+                    <table id="user-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Last Activity</th>
+                                <th>Risk Score</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Section 2: Threat Management -->
+            <div id="threats-section" class="section">
+                <h2>Threat Management</h2>
+                <div class="card">
+                    <div class="search-bar">
+                        <input type="text" id="manual-block" placeholder="Enter URL to manually block...">
+                        <button class="btn btn-red" onclick="manualBlock()">Block URL</button>
+                    </div>
+                    <table id="threat-table">
+                        <thead>
+                            <tr>
+                                <th>Source URL</th>
+                                <th>Type</th>
+                                <th>Detected</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="threat-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Section 3: Advanced Analytics -->
+            <div id="analytics-section" class="section">
+                <h2>Advanced Analytics</h2>
+                <div class="charts-grid">
+                    <div class="card">
+                        <div class="card-title"><i class="ti ti-chart-line"></i> Threat Trends</div>
+                        <div class="metric-summary">
+                            <div class="metric-chip">Detected: <b id="total-detected">84</b></div>
+                            <div class="metric-chip">Blocked: <b id="total-blocked">76</b></div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title"><i class="ti ti-chart-bar"></i> Risk Score per User</div>
+                        <div class="chart-container">
+                            <canvas id="riskBarChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card" style="grid-column: span 2;">
+                        <div class="card-title"><i class="ti ti-chart-donut"></i> Most Targeted Websites</div>
+                        <div class="chart-container">
+                            <canvas id="targetDoughnutChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: AI Risk Alerts -->
+            <div id="alerts-section" class="section">
+                <h2>AI Risk Alerts</h2>
+                <div class="metric-summary" style="margin-bottom: 20px;">
+                    <div class="metric-chip">Total: <b>5</b></div>
+                    <div class="metric-chip" style="color: var(--red);">Critical: <b>2</b></div>
+                    <div class="metric-chip" style="color: var(--amber);">Warnings: <b>3</b></div>
+                </div>
+                <div id="alerts-feed">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Section 5: Real-time Notifications -->
+            <div id="notifications-section" class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2>Real-time Notifications</h2>
+                    <button class="btn" onclick="markAllRead()">Mark All Read</button>
+                </div>
+                <div class="card" id="notification-feed">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Section 6: Approval System -->
+            <div id="approvals-section" class="section">
+                <h2>Approval System</h2>
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('pending')">Pending Approvals <span id="pending-badge" class="tab-badge">3</span></div>
+                    <div class="tab" onclick="switchTab('reviewed')">Reviewed</div>
+                </div>
+                <div id="pending-list">
+                    <!-- Populated by JS -->
+                </div>
+                <div id="reviewed-list" style="display: none;">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // --- 3D BACKGROUND (Three.js) ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        for (let i = 0; i < 5000; i++) {
+            vertices.push(THREE.MathUtils.randFloatSpread(2000)); // x
+            vertices.push(THREE.MathUtils.randFloatSpread(2000)); // y
+            vertices.push(THREE.MathUtils.randFloatSpread(2000)); // z
+        }
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        const material = new THREE.PointsMaterial({ color: 0x22d3ee, size: 2, transparent: true, opacity: 0.5 });
+        const points = new THREE.Points(geometry, material);
+        scene.add(points);
+
+        camera.position.z = 1000;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            points.rotation.x += 0.0005;
+            points.rotation.y += 0.0005;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- MOCK DATA ---
+        let users = [
+            { name: "Siddharth", email: "sissd@gmail.com", status: "Risky", last: "2m ago", risk: 84 },
+            { name: "Manjunath Aladakatti", email: "margunathaladakatti767@gmail.com", status: "Active", last: "5m ago", risk: 22 },
+            { name: "Nagu", email: "hery@ggmlivvm", status: "Risky", last: "12m ago", risk: 92 },
+            { name: "Prajwal", email: "abrg@ahr.som", status: "Active", last: "1h ago", risk: 45 },
+            { name: "Prajwal B", email: "prajwal@gmail.com", status: "Active", last: "3h ago", risk: 15 },
+            { name: "Rahul K", email: "rahul@security.net", status: "Idle", last: "1d ago", risk: 35 },
+            { name: "Ananya S", email: "ananya@domain.com", status: "Risky", last: "10m ago", risk: 78 }
+        ];
+
+        let threats = [
+            { url: "http://legit-banking.xyz/login", type: "Phishing", time: "14:22:10", status: "Detected" },
+            { url: "https://free-btc-now.ru/claim", type: "Malware", time: "14:05:45", status: "Blocked" },
+            { url: "http://update-chrome-sys.com", type: "Suspicious", time: "13:50:22", status: "Detected" },
+            { url: "https://amazon-rewards-prime.net", type: "Phishing", time: "12:10:05", status: "Safe" },
+            { url: "http://malicious-file-download.org", type: "Malware", time: "11:45:30", status: "Blocked" },
+            { url: "http://strange-redirect.io", type: "Suspicious", time: "10:30:15", status: "Detected" }
+        ];
+
+        let alerts = [
+            { title: "Unusual login pattern detected", desc: "User Nagu logged in from an unknown IP in Russia.", type: "critical", user: "Nagu", time: "5m ago" },
+            { title: "Excessive Phishing attempts", desc: "User Siddharth has encountered 5 phishing links in 10 mins.", type: "warning", user: "Siddharth", time: "12m ago" },
+            { title: "System Update Available", desc: "AccessShield Engine v2.4 is ready for deployment.", type: "info", user: "System", time: "1h ago" },
+            { title: "New Admin Promoted", desc: "User Prajwal was granted admin access by SuperAdmin.", type: "info", user: "Prajwal", time: "2h ago" },
+            { title: "Database Leak Warning", desc: "Credentials for 'prajwal@gmail.com' found in public pastebin.", type: "critical", user: "Prajwal B", time: "3h ago" }
+        ];
+
+        let notifications = [
+            { icon: "ti-shield", text: "New malware variant blocked globally.", time: "1m ago", tag: "Threat", unread: true },
+            { icon: "ti-alert-triangle", text: "High risk score detected for user Nagu.", time: "5m ago", tag: "Suspicious", unread: true },
+            { icon: "ti-bell", text: "System maintenance scheduled for 02:00 UTC.", time: "1h ago", tag: "Info", unread: false }
+        ];
+
+        let approvals = [
+            { type: "Website Approval", requester: "Manjunath", details: "Request to unblock 'developer-docs.io'", risk: "Low", time: "2h ago" },
+            { type: "User Action", requester: "Prajwal", details: "Bulk deletion of history logs requested.", risk: "High", time: "4h ago" },
+            { type: "Risk Override", requester: "Siddharth", details: "Bypass SSL warning for internal staging site.", risk: "Medium", time: "5h ago" }
+        ];
+        let reviewedApprovals = [];
+
+        // --- CORE FUNCTIONS ---
+
+        function showSection(id, element) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id + '-section').classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            element.classList.add('active');
+
+            if (id === 'analytics') renderCharts();
+            if (id === 'notifications') {
+                notifications.forEach(n => n.unread = false);
+                updateNotificationBadge();
+                renderNotifications();
+            }
+        }
+
+        function filterUsers() {
+            const search = document.getElementById('user-search').value.toLowerCase();
+            const filter = document.getElementById('user-filter').value;
+            const tbody = document.getElementById('user-body');
+            tbody.innerHTML = '';
+
+            users.forEach(u => {
+                const matchesSearch = u.name.toLowerCase().includes(search) || u.email.toLowerCase().includes(search);
+                const matchesFilter = filter === 'All' || (filter === 'Risky' && u.risk > 70) || (filter === 'Active' && u.status === 'Active');
+
+                if (matchesSearch && matchesFilter) {
+                    const row = document.createElement('tr');
+                    if (u.risk > 70) row.className = 'risky-row';
+                    
+                    const initials = u.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                    
+                    row.innerHTML = `
+                        <td>
+                            <div class="user-info">
+                                <div class="avatar-circle" style="background: ${u.risk > 70 ? 'var(--red)' : 'var(--cyan)'}">${initials}</div>
+                                <div>
+                                    <div style="font-weight: 600;">${u.name}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-dim);">${u.email}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="status-badge status-${u.status.toLowerCase()}">${u.status}</span></td>
+                        <td>${u.last}</td>
+                        <td><span class="risk-pill" style="background: ${u.risk > 70 ? 'var(--red)' : (u.risk > 30 ? 'var(--amber)' : 'var(--green)')}22; color: ${u.risk > 70 ? 'var(--red)' : (u.risk > 30 ? 'var(--amber)' : 'var(--green)')}">${u.risk}</span></td>
+                        <td>
+                            <button class="btn">View</button>
+                            <button class="btn btn-red">Block</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                }
+            });
+        }
+
+        function renderThreats() {
+            const tbody = document.getElementById('threat-body');
+            tbody.innerHTML = '';
+            threats.forEach((t, i) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><i class="ti ti-world"></i> ${t.url}</td>
+                    <td style="color: ${t.type === 'Malware' ? 'var(--red)' : 'var(--amber)'}">${t.type}</td>
+                    <td>${t.time}</td>
+                    <td><span class="status-badge status-${t.status.toLowerCase()}">${t.status}</span></td>
+                    <td>
+                        <button class="btn btn-green" onclick="updateThreat(${i}, 'Safe')">Mark Safe</button>
+                        <button class="btn btn-amber" onclick="updateThreat(${i}, 'Suspicious')">Suspicious</button>
+                        <button class="btn btn-red" onclick="updateThreat(${i}, 'Blocked')">Block</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateThreat(index, status) {
+            threats[index].status = status;
+            renderThreats();
+        }
+
+        function manualBlock() {
+            const url = document.getElementById('manual-block').value;
+            if (!url) return;
+            threats.unshift({ url, type: "Manual", time: new Date().toLocaleTimeString(), status: "Blocked" });
+            document.getElementById('manual-block').value = '';
+            renderThreats();
+        }
+
+        function renderAlerts() {
+            const feed = document.getElementById('alerts-feed');
+            feed.innerHTML = '';
+            alerts.forEach(a => {
+                const card = document.createElement('div');
+                card.className = `card alert-card alert-${a.type}`;
+                card.innerHTML = `
+                    ${a.type === 'critical' ? '<div class="pulsing-dot"></div>' : ''}
+                    <i class="ti ti-brain" style="font-size: 1.5rem; color: var(--${a.type === 'critical' ? 'red' : (a.type === 'warning' ? 'amber' : 'cyan')});"></i>
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: bold; margin-bottom: 5px;">${a.title}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">${a.desc}</div>
+                        <div style="font-size: 0.75rem;">
+                            Affected: <span style="color: var(--cyan);">${a.user}</span> • ${a.time}
+                        </div>
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button class="btn btn-outline-red">Block User</button>
+                            <button class="btn btn-outline-amber">Send Warning</button>
+                        </div>
+                    </div>
+                `;
+                feed.appendChild(card);
+            });
+        }
+
+        function renderNotifications() {
+            const feed = document.getElementById('notification-feed');
+            feed.innerHTML = '';
+            notifications.forEach(n => {
+                const item = document.createElement('div');
+                item.className = `notification-item ${n.unread ? 'unread' : ''}`;
+                item.innerHTML = `
+                    <i class="ti ${n.icon}" style="font-size: 1.2rem; color: var(--cyan);"></i>
+                    <div style="flex-grow: 1;">
+                        <div style="font-size: 0.9rem;">${n.text}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 5px;">
+                            ${n.time} • <span style="color: var(--cyan);">${n.tag}</span>
+                        </div>
+                    </div>
+                `;
+                feed.appendChild(item);
+            });
+        }
+
+        function updateNotificationBadge() {
+            const count = notifications.filter(n => n.unread).length;
+            const badge = document.getElementById('unread-count');
+            badge.innerText = count;
+            badge.style.display = count > 0 ? 'block' : 'none';
+        }
+
+        function markAllRead() {
+            notifications.forEach(n => n.unread = false);
+            updateNotificationBadge();
+            renderNotifications();
+        }
+
+        function simulateNotification() {
+            const texts = [
+                "New suspicious activity from Manjunath Aladakatti.",
+                "Engine security heuristics updated successfully.",
+                "DDoS protection activated for primary domain.",
+                "Access request from Nagu for AI Alerts section.",
+                "Threat detected: malicious-site.biz blocked."
+            ];
+            const text = texts[Math.floor(Math.random() * texts.length)];
+            notifications.unshift({ icon: "ti-bell", text, time: "Just now", tag: "Info", unread: true });
+            if (notifications.length > 20) notifications.pop();
+            updateNotificationBadge();
+            if (document.getElementById('notifications-section').classList.contains('active')) {
+                renderNotifications();
+            }
+        }
+
+        function renderApprovals() {
+            const list = document.getElementById('pending-list');
+            list.innerHTML = '';
+            approvals.forEach((a, i) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="avatar-circle">${a.requester[0]}</div>
+                            <div>
+                                <div style="font-weight: bold;">${a.type}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-dim);">Requester: ${a.requester}</div>
+                            </div>
+                        </div>
+                        <span class="status-badge" style="background: rgba(255,255,255,0.05); color: ${a.risk === 'High' ? 'var(--red)' : (a.risk === 'Medium' ? 'var(--amber)' : 'var(--cyan)')}">${a.risk} Risk</span>
+                    </div>
+                    <div style="font-size: 0.9rem; margin-bottom: 15px;">${a.details}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.75rem; color: var(--text-dim);">${a.time}</span>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-green" onclick="handleApproval(${i}, 'Approve')">Approve</button>
+                            <button class="btn btn-red" onclick="handleApproval(${i}, 'Reject')">Reject</button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+            document.getElementById('pending-badge').innerText = approvals.length;
+        }
+
+        function handleApproval(index, action) {
+            const item = approvals.splice(index, 1)[0];
+            item.decision = action;
+            item.reviewedAt = "Just now";
+            reviewedApprovals.unshift(item);
+            renderApprovals();
+            renderReviewed();
+        }
+
+        function renderReviewed() {
+            const list = document.getElementById('reviewed-list');
+            list.innerHTML = '';
+            reviewedApprovals.forEach(a => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.opacity = '0.7';
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span style="font-weight: bold;">${a.type}</span>
+                        <span class="status-badge" style="background: ${a.decision === 'Approve' ? 'var(--green)' : 'var(--red)'}22; color: ${a.decision === 'Approve' ? 'var(--green)' : 'var(--red)'}">${a.decision}ed</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-dim);">Reviewed ${a.reviewedAt} by Super User</div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            if (tab === 'pending') {
+                document.getElementById('pending-list').style.display = 'block';
+                document.getElementById('reviewed-list').style.display = 'none';
+            } else {
+                document.getElementById('pending-list').style.display = 'none';
+                document.getElementById('reviewed-list').style.display = 'block';
+            }
+        }
+
+        // --- CHARTS ---
+        let trendChart, riskChart, targetChart;
+
+        function renderCharts() {
+            if (trendChart) trendChart.destroy();
+            if (riskChart) riskChart.destroy();
+            if (targetChart) targetChart.destroy();
+
+            const ctx1 = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['1d', '2d', '3d', '4d', '5d', '6d', '7d', '8d', '9d', '10d', '11d', '12d', '13d', '14d'],
+                    datasets: [
+                        { label: 'Detected', data: [5, 12, 8, 15, 20, 18, 25, 22, 30, 28, 35, 32, 40, 38], borderColor: '#22d3ee', tension: 0.4 },
+                        { label: 'Blocked', data: [4, 10, 7, 14, 18, 16, 23, 20, 28, 26, 33, 30, 38, 36], borderColor: '#a78bfa', tension: 0.4 }
+                    ]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: '#8b949e' } } }, scales: { y: { grid: { color: '#30363d' }, ticks: { color: '#8b949e' } }, x: { grid: { color: '#30363d' }, ticks: { color: '#8b949e' } } } }
+            });
+
+            const ctx2 = document.getElementById('riskBarChart').getContext('2d');
+            riskChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Siddharth', 'Manjunath', 'Nagu', 'Prajwal', 'Rahul', 'Ananya'],
+                    datasets: [{
+                        label: 'Risk Score',
+                        data: [84, 22, 92, 45, 35, 78],
+                        backgroundColor: [ '#f85149', '#3fb950', '#f85149', '#fbbf24', '#fbbf24', '#f85149' ]
+                    }]
+                },
+                options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#8b949e' } }, x: { max: 100, ticks: { color: '#8b949e' } } } }
+            });
+
+            const ctx3 = document.getElementById('targetDoughnutChart').getContext('2d');
+            targetChart = new Chart(ctx3, {
+                type: 'doughnut',
+                data: {
+                    labels: ['legit-banking.xyz', 'amazon-rewards.net', 'google-sys-update.com', 'free-btc.ru', 'Others'],
+                    datasets: [{
+                        data: [35, 25, 20, 10, 10],
+                        backgroundColor: ['#22d3ee', '#a78bfa', '#fbbf24', '#f85149', '#30363d'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#8b949e' } } } }
+            });
+        }
+
+        // Initialize
+        window.onload = () => {
+            filterUsers();
+            renderThreats();
+            renderAlerts();
+            renderNotifications();
+            updateNotificationBadge();
+            renderApprovals();
+            setInterval(simulateNotification, 8000);
+        };
+    </script>
+</body>
+</html>
